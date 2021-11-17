@@ -1,6 +1,15 @@
 let timer = null;
 const MAX = 3;
 let count = 0;
+let eTime;
+
+const APPLICATION_KEY = "0ecabbbf57e15560e1cf53111791ad1cbec5a1e856c63c0787a1db92e4bad852";
+const CLIENT_KEY = "9acaae1fd72a6f449f2102acbbe6af32b7bc1b483c2ed7cbe088d6e32d435e6e";
+const ncmb = new NCMB(APPLICATION_KEY,CLIENT_KEY);
+const DBName = "GameClass";
+
+let TestClass = ncmb.DataStore(DBName);
+
 
 function init() {
   if (timer == null) {
@@ -29,6 +38,8 @@ function gameStart() {
         if(count==MAX){
           alert("ゲームクリア!!");
           clearTimeout(timer);
+          save();
+          load();
         }else{
           gameStart();
         }
@@ -45,7 +56,6 @@ function gameStart() {
   }
   let p = Math.floor(Math.random()*size*size);
   let ans = document.getElementById("num" + p);
-  document.getElementById("num"+ p).style.color ="red";
   ans.textContent = q[qNum][1];
 }
 
@@ -53,8 +63,41 @@ function gameStart() {
 
 function time() {
   let now = new Date();
-  let eTime = parseInt((now.getTime() - start.getTime())/1000);
+  eTime = parseInt((now.getTime() - start.getTime())/1000);
   score.textContent = eTime + "秒";
   timer = setTimeout("time()", 1000);
 
+}
+
+// データの保存
+function save(){
+  let test = new TestClass();
+  let key = "message";
+  const text = document.getElementById('message');
+  let value = timer-1;
+  test.set(key, parseInt(value));
+  test.save()
+  .then(function(){
+    console.log("成功");
+  })
+  .catch(function(err){
+    console.log("エラー発生:"+ err);
+  });
+}
+
+// データの読み込み
+function load(){
+  TestClass
+  .order("message")
+  .fetchAll()
+  .then(function(results){
+      if(eTime<results[0].message){
+        alert("ハイスコア更新！！" );
+      }else{
+        alert("ハイスコア目指して、再チャレンジしよう！！");
+      }
+  })
+  .catch(function(err){
+    console.log("エラー発生:"+ err);
+  });
 }
